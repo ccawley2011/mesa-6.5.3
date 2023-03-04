@@ -13,7 +13,7 @@ CXXFLAGS = -mlibscl -O3 -ansi -pedantic -Wno-long-long -ffast-math -D_POSIX_SOUR
 # Directories
 SRC_DIRS = mesa glu
 DRIVER_DIRS = osmesa
-PROGRAM_DIRS = osdemos
+PROGRAM_DIRS = osdemos riscos
 
 # Dependencies
 GLU_LIB_DEPS = -L$(TOP)/$(LIB_DIR) -l$(OSMESA_LIB)

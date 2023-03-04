@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
+#include "GL/osmesa.h"
 #include <math.h>
 #include <string.h>
 #include <swis.h>
@@ -27,9 +27,9 @@
 _kernel_swi_regs	regs;
 _kernel_oserror		error;
 
-ROSMesaContext ctx;
+OSMesaContext ctx;
 
-   void *buffer;
+   unsigned char *buffer;
    int	window_block[23] = {0, 256, 256, 256+(WIDTH*UNITS), 256+(HEIGHT*UNITS), 0, 0, -1, 0x87040012, 0xff070207, 0x000c0103, 0, -HEIGHT*UNITS, WIDTH*UNITS, 0, 0x2700003d, 0x00002000, 1, 0, 000, 0, 0, 0};
 	char		task_name[16] = "Gears";
 	unsigned int	task_handle;
@@ -284,15 +284,15 @@ void setup( void )
 	strcpy((char *)&window_block[19], "Gears");
 
    /* Create a single buffered RGB8-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGB, 8, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) exit(0);
 
    /* Allocate the image buffer */
-	buffer = malloc( (size_t) WIDTH * HEIGHT + HEADER );
+	buffer = malloc( (size_t) WIDTH * HEIGHT * 4 + HEADER );
 
    /* Initialise a sprite area */
 
-	*(unsigned int *)buffer		= WIDTH * HEIGHT + HEADER;
+	*(unsigned int *)buffer		= WIDTH * HEIGHT * 4 + HEADER;
 	*(unsigned int *)(buffer + 8)	= 0;
 	*(unsigned int *)(buffer + 8)	= 16;
 	*(unsigned int *)(buffer + 8)	= 16;
@@ -307,13 +307,13 @@ void setup( void )
 	regs.r[3] = 0;
 	regs.r[4] = WIDTH;
 	regs.r[5] = HEIGHT;
-	regs.r[6] = (4 << 27) | ((180/UNITS) << 14) | ((180/UNITS) << 1) | 1;
+	regs.r[6] = (6 << 27) | ((180/UNITS) << 14) | ((180/UNITS) << 1) | 1;
    _kernel_swi(OS_SpriteOp, &regs, &regs);
 
   clear_screen(buffer+HEADER);
 
   /* Bind the buffer to the context and make it current */
-  if (ROSMesaMakeCurrent( ctx, buffer+HEADER, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
+  if (OSMesaMakeCurrent( ctx, buffer+HEADER, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
   {
   	exit(0);
   }
@@ -365,7 +365,7 @@ void end( void )
    free(buffer);
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 }
 
 
