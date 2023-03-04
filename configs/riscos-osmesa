@@ -1,0 +1,27 @@
+# Configuration for building libOSMesa for RISC OS.
+
+include $(TOP)/configs/default
+
+CONFIG_NAME = riscos-osmesa
+
+# Compiler and flags
+CC = arm-unknown-riscos-gcc
+CXX = arm-unknown-riscos-g++
+CFLAGS = -O3 -ansi -pedantic -Wno-long-long -ffast-math -D_POSIX_SOURCE -D_POSIX_C_SOURCE=199309L -D_SVID_SOURCE -D_BSD_SOURCE -DPTHREADS
+CXXFLAGS = -O3 -ansi -pedantic -Wno-long-long -ffast-math -D_POSIX_SOURCE -D_POSIX_C_SOURCE=199309L -D_SVID_SOURCE -D_BSD_SOURCE
+
+# Directories
+SRC_DIRS = mesa glu
+DRIVER_DIRS = osmesa
+PROGRAM_DIRS = osdemos
+
+# Dependencies
+GLU_LIB_DEPS = -L$(TOP)/$(LIB_DIR) -l$(OSMESA_LIB)
+APP_LIB_DEPS = -lOSMesa -lGLU -static
+
+# Compiler and flags
+MKLIB_OPTIONS = -static
+
+# Library names
+OSMESA_LIB_NAME = libOSMesa.a
+

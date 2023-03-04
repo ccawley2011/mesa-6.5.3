@@ -16,7 +16,9 @@ INCLUDE_DIRS = \
 	-I../tnl
 
 
-default: matypes.h
+# matypes.h isn't built by default since it doesn't work when cross-compiling
+#default: matypes.h
+default:
 
 clean:
 	rm -f matypes.h

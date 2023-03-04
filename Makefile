@@ -130,6 +130,8 @@ netbsd \
 openbsd \
 osf1 \
 osf1-static \
+riscos-osmesa \
+riscos-scl-osmesa \
 solaris-x86 \
 solaris-x86-gcc \
 solaris-x86-gcc-static \

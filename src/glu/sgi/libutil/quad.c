@@ -432,6 +432,11 @@ gluDisk(GLUquadric *qobj, GLdouble innerRadius, GLdouble outerRadius,
     gluPartialDisk(qobj, innerRadius, outerRadius, slices, loops, 0.0, 360.0);
 }
 
+/* HACK: gluPartialDisk and gluSphere fail to compile when targetting FPA with -O2 or -O3 */
+#if defined(__riscos__) && defined(__TARGET_SCL__)
+#pragma GCC optimize("O1")
+#endif
+
 void GLAPIENTRY
 gluPartialDisk(GLUquadric *qobj, GLdouble innerRadius,
 		   GLdouble outerRadius, GLint slices, GLint loops,

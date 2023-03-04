@@ -14,7 +14,9 @@ INCLUDE_DIRS = \
 	-I../tnl
 
 
-default: gen_matypes matypes.h
+# gen_matypes and matypes.h aren't built by default since they don't work when cross-compiling
+#default: gen_matypes matypes.h
+default:
 
 clean:
 	rm -f matypes.h gen_matypes
