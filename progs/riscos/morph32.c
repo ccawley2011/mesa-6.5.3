@@ -3,7 +3,7 @@
  *
  * Converted to GLUT by brianp on 1/1/98
  *
- * Converted to ROSMesa by David Boddie on 16th June 1998
+ * Converted to RISC OS by David Boddie on 16th June 1998
  *
  * This program was inspired on a WindowsNT(R)'s screen saver. It was written
  * from scratch and it was not based on any other source code.
@@ -140,7 +140,7 @@ So the angle is:
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <GL/rosmesa.h>
+#include "GL/osmesa.h"
 #include <math.h>
 #include <swis.h>
 #include <kernel.h>
@@ -836,8 +836,8 @@ void clear_screen(void *buffer)
 
 void INIT(void)
 {
-   ROSMesaContext ctx;
-   void *buffer;
+   OSMesaContext ctx;
+   unsigned char *buffer;
    int temp[3];
    int	k;
    int	b;
@@ -969,7 +969,7 @@ void INIT(void)
 /*
 
    /* Create a single buffered RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, 8, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL)
    {
 /*
@@ -1006,7 +1006,7 @@ void INIT(void)
   clear_screen(buffer+HEADER);
 
   /* Bind the buffer to the context and make it current */
-  if (ROSMesaMakeCurrent( ctx, buffer+HEADER, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
+  if (OSMesaMakeCurrent( ctx, buffer+HEADER, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
   {
 /*
 	output = fopen("ADFS::HardDisc4.$.Personal.Graphics.Mesa.Widget.debugging", "w");
@@ -1015,6 +1015,9 @@ void INIT(void)
 */
 	exit(0);
   }
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
 /* Initialise task */
 	regs.r[0] = (unsigned int)310;
@@ -1200,7 +1203,7 @@ do
    free(buffer);
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 
 }
 
