@@ -21,9 +21,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
-#include "glaux.h"
-#include <sys/swis.h>
+#include "GL/osmesa.h"
+#include "GL/glut.h"
+#include <swis.h>
 #include <kernel.h>
 
 
@@ -95,7 +95,7 @@ static void render_image( void )
    fprintf(stderr, "Before torus created.\n");
 #endif
 
-   auxSolidTorus(0.275, 0.85);
+   glutSolidTorus(0.275, 0.85, 8, 15);
    glPopMatrix();
 
    /* Debug statement */
@@ -107,7 +107,7 @@ static void render_image( void )
    glTranslatef(-0.75, -0.5, 0.0);
    glRotatef(270.0, 1.0, 0.0, 0.0);
    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, green_mat );
-   auxSolidCone(1.0, 2.0);
+   glutSolidCone(1.0, 2.0, 15, 10);
    glPopMatrix();
 
    /* Debug statement */
@@ -118,7 +118,7 @@ static void render_image( void )
    glPushMatrix();
    glTranslatef(0.75, 0.0, -1.0);
    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, blue_mat );
-   auxSolidSphere(1.0);
+   glutSolidSphere(1.0, 16, 16);
    glPopMatrix();
 
 
@@ -133,7 +133,7 @@ static void render_image( void )
 
 int main()
 {
-   ROSMesaContext ctx;
+   OSMesaContext ctx;
    void *buffer;
 /*   char	*filename[32]; */
    int temp[3];
@@ -147,7 +147,7 @@ int main()
    fprintf(stderr, "Before context created.\n");
 #endif
    /* Create an RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, 32, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) return 0;
 
    /* Debug statement */
@@ -181,7 +181,11 @@ int main()
    fprintf(stdout, "buffer = &%x\n", (unsigned int)buffer);
 */
    /* Bind the buffer to the context and make it current */
-   ROSMesaMakeCurrent( ctx, buffer, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+   OSMesaMakeCurrent( ctx, buffer, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
+
    /* Debug statement */
 #ifdef DEBUG
    fprintf(stderr, "Current context set.\n");
@@ -202,7 +206,7 @@ int main()
 */
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 
    return 0;
 }
