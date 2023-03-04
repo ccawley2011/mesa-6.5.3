@@ -318,6 +318,9 @@ void setup( void )
   	exit(0);
   }
 
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
+
 /* Initialise task */
 	regs.r[0] = (unsigned int)310;
 	regs.r[1] = (unsigned int)0x4b534154;
