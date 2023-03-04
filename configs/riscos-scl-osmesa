@@ -11,7 +11,7 @@ CFLAGS = -mlibscl -O3 -ansi -pedantic -Wno-long-long -ffast-math -D_POSIX_SOURCE
 CXXFLAGS = -mlibscl -O3 -ansi -pedantic -Wno-long-long -ffast-math -D_POSIX_SOURCE -D_POSIX_C_SOURCE=199309L -D_SVID_SOURCE -D_BSD_SOURCE
 
 # Directories
-SRC_DIRS = mesa glu
+SRC_DIRS = mesa glu glut/mini
 DRIVER_DIRS = osmesa
 PROGRAM_DIRS = osdemos riscos
 

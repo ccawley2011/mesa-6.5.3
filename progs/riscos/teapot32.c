@@ -43,18 +43,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
-#include <GL/glu.h>
+#include "GL/osmesa.h"
+#include "GL/glu.h"
+#include "GL/glut.h"
 #include <stdlib.h>
-#include "glaux.h"
 #include <swis.h>
 #include <kernel.h>
 
-//#define WIDTH 480
-//#define HEIGHT 352
-
-#define WIDTH 1152
-#define HEIGHT 864
+#define WIDTH 480
+#define HEIGHT 352
 
 /*  Initialize light source.
  */
@@ -90,7 +87,7 @@ void display(void)
     glPushMatrix ();
     glTranslatef (0.0, 0.0, 0.0);
     glRotatef (30.0, 1.0, 0.0, 0.0); /* Rotate by 30 degrees about the x-axis */
-    auxSolidTeapot(2.0);	/*  one-sided lighting	*/
+    glutSolidTeapot(2.0);	/*  one-sided lighting	*/
     glPopMatrix ();
 
     glFlush();
@@ -116,14 +113,14 @@ void myReshape(int w, int h)
  */
 int main(int argc, char** argv)
 {
-   ROSMesaContext ctx;
+   OSMesaContext ctx;
    void *buffer;
    int temp[3];
    _kernel_swi_regs regs;
    int	mode_block[6] = {1, WIDTH, HEIGHT, 5, -1, -1};
 
    /* Create an RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, 32, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) return 0;
 
 /* Change mode */
@@ -146,14 +143,17 @@ int main(int argc, char** argv)
    buffer = (int *) temp[2];
 
    /* Bind the buffer to the context and make it current */
-   ROSMesaMakeCurrent( ctx, buffer, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+   OSMesaMakeCurrent( ctx, buffer, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
    myinit();
    myReshape(WIDTH, HEIGHT);
    display();
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 
    return 0;
 }

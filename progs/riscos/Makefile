@@ -5,12 +5,13 @@ include $(TOP)/configs/current
 
 INCDIR = $(TOP)/include
 
-OSMESA_LIBS = -L$(TOP)/$(LIB_DIR) -lOSMesa $(APP_LIB_DEPS)
+OSMESA_LIBS = -L$(TOP)/$(LIB_DIR) -lglut -lOSMesa $(APP_LIB_DEPS)
 
 LIB_DEP = $(TOP)/$(LIB_DIR)/$(GL_LIB_NAME) $(TOP)/$(LIB_DIR)/$(GLU_LIB_NAME) $(TOP)/$(LIB_DIR)/$(GLUT_LIB_NAME)
 
 PROGS = \
-	desk_vgear
+	desk_vgear \
+	teapot32
 
 
 ##### RULES #####
@@ -32,6 +33,10 @@ default: $(PROGS)
 # special case: need the -lOSMesa library:
 desk_vgear: desk_vgear.c
 	$(CC) -I$(INCDIR) $(CFLAGS) desk_vgear.c $(OSMESA_LIBS) -o $@
+
+# special case: need the -lOSMesa library:
+teapot32: teapot32.c
+	$(CC) -I$(INCDIR) $(CFLAGS) teapot32.c $(OSMESA_LIBS) -o $@
 
 
 
