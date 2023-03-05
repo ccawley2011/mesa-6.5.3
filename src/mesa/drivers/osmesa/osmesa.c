@@ -1352,8 +1352,16 @@ OSMesaMakeCurrent( OSMesaContext osmesa, void *buffer, GLenum type,
       return GL_FALSE;
    }
 
-   if (osmesa->format == OSMESA_RGB_565 && type != GL_UNSIGNED_SHORT_5_6_5) {
-      return GL_FALSE;
+   /**
+    * HACK: The OSMesaMakeCurrent interface requires that type is GL_UNSIGNED_SHORT_5_6_5
+    * for OSMESA_RGB_565, but the swrast code expects that type is GL_UNSIGNED_BYTE.
+    */
+   if (osmesa->format == OSMESA_RGB_565) {
+      if (type == GL_UNSIGNED_SHORT_5_6_5) {
+         type = GL_UNSIGNED_BYTE;
+      } else {
+         return GL_FALSE;
+      }
    }
 
 #if 0
