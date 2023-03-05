@@ -10,6 +10,7 @@ OSMESA_LIBS = -L$(TOP)/$(LIB_DIR) -lglut -lOSMesa $(APP_LIB_DEPS)
 LIB_DEP = $(TOP)/$(LIB_DIR)/$(GL_LIB_NAME) $(TOP)/$(LIB_DIR)/$(GLU_LIB_NAME) $(TOP)/$(LIB_DIR)/$(GLUT_LIB_NAME)
 
 PROGS = \
+	cube3 \
 	cube32 \
 	desk_vgear \
 	morph32 \
@@ -33,6 +34,10 @@ PROGS = \
 
 default: $(PROGS)
 
+
+# special case: need the -lOSMesa library:
+cube3: cube3.c
+	$(CC) -I$(INCDIR) $(CFLAGS) cube3.c $(OSMESA_LIBS) -o $@
 
 # special case: need the -lOSMesa library:
 cube32: cube32.c

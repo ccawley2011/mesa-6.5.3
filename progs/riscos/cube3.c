@@ -10,10 +10,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
+#include "GL/osmesa.h"
 #include <math.h>
 #include <string.h>
-#include <sys/swis.h>
+#include <swis.h>
 #include <kernel.h>
 
 #define WIDTH 128
@@ -26,9 +26,9 @@
 static	_kernel_swi_regs	regs;
 static	_kernel_oserror		error;
 
-ROSMesaContext ctx;
+OSMesaContext ctx;
 
-   void *buffer;
+   unsigned char *buffer;
    int	window_block[23] = {0, 256, 256, 256+(WIDTH*UNITS), 256+(HEIGHT*UNITS), 0, 0, -1, 0x87040012, 0xff070207, 0x000c0103, 0, -HEIGHT*UNITS, WIDTH*UNITS, 0, 0x2700003d, 0x00002000, 1, 0, 000, 0, 0, 0};
 	char		task_name[16] = "Cube";
 	unsigned int	task_handle;
@@ -273,7 +273,7 @@ void setup( void )
 	menu_block[14] = 0;
 
    /* Create a single buffered RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, 32, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) exit(0);
 
    /* Allocate the image buffer */
@@ -302,10 +302,13 @@ void setup( void )
   clear_screen(buffer+HEADER);
 
   /* Bind the buffer to the context and make it current */
-  if (ROSMesaMakeCurrent( ctx, buffer+HEADER, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
+  if (OSMesaMakeCurrent( ctx, buffer+HEADER, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
   {
   	exit(0);
   }
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
 /* Initialise task */
 	regs.r[0] = (unsigned int)310;
@@ -354,7 +357,7 @@ void end( void )
    free(buffer);
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 }
 
 
@@ -453,6 +456,7 @@ do
                                         }
                                         break;
                         default:
+                                        break;
 		}
 } while (quit == 0);
 
