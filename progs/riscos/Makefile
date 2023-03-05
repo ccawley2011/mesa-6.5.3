@@ -17,6 +17,7 @@ PROGS = \
 	desk_vgear \
 	morph32 \
 	movelight \
+	rosdemo16 \
 	rosdemo32 \
 	teapot32
 
@@ -64,6 +65,10 @@ morph32: morph32.c
 # special case: need the -lOSMesa library:
 movelight: movelight.c
 	$(CC) -I$(INCDIR) $(CFLAGS) movelight.c $(OSMESA_LIBS) -o $@
+
+# special case: need the -lOSMesa library:
+rosdemo16: rosdemo16.c
+	$(CC) -I$(INCDIR) $(CFLAGS) rosdemo16.c $(OSMESA_LIBS) -o $@
 
 # special case: need the -lOSMesa library:
 rosdemo32: rosdemo32.c

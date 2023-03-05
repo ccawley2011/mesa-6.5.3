@@ -21,9 +21,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
-#include "glaux.h"
-#include <sys/swis.h>
+#include "GL/osmesa.h"
+#include "GL/glut.h"
+#include <swis.h>
 #include <kernel.h>
 
 
@@ -96,7 +96,7 @@ static void render_image( void )
    fprintf(stderr, "Before torus created.\n");
 */
 
-   auxSolidTorus(0.275, 0.85);
+   glutSolidTorus(0.275, 0.85, 8, 15);
    glPopMatrix();
 
    /* Debug statement */
@@ -108,7 +108,7 @@ static void render_image( void )
    glTranslatef(-0.75, -0.5, 0.0);
    glRotatef(270.0, 1.0, 0.0, 0.0);
    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, green_mat );
-   auxSolidCone(1.0, 2.0);
+   glutSolidCone(1.0, 2.0, 15, 10);
    glPopMatrix();
 
    /* Debug statement */
@@ -119,7 +119,7 @@ static void render_image( void )
    glPushMatrix();
    glTranslatef(0.75, 0.0, -1.0);
    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, blue_mat );
-   auxSolidSphere(1.0);
+   glutSolidSphere(1.0, 16, 16);
    glPopMatrix();
 
 
@@ -134,15 +134,15 @@ static void render_image( void )
 
 int main()
 {
-   ROSMesaContext ctx;
+   OSMesaContext ctx;
    void *buffer;
    int temp[3];
    _kernel_swi_regs regs;
-   int	mode_block[6] = {1, 320, 256, 4, -1, -1};
+   int	mode_block[8] = {1, 320, 256, 4, -1, 0, (1 << 7) | (1 << 12), -1};
 
 
    /* Create an RGB-mode context (16 bits per pixel) */
-   ctx = ROSMesaCreateContext( ROSMESA_RGB, 16, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGB_565, NULL );
    if (ctx==NULL)
    {
            printf("Couldn't create context.\n");
@@ -174,7 +174,11 @@ int main()
    fprintf(stdout, "buffer = &%x\n", (unsigned int)buffer);
 */
    /* Bind the buffer to the context and make it current */
-   ROSMesaMakeCurrent( ctx, buffer, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+   OSMesaMakeCurrent( ctx, buffer, GL_UNSIGNED_SHORT_5_6_5, WIDTH, HEIGHT );
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
+
    /* Debug statement */
 /*
    fprintf(stderr, "Current context set.\n");
@@ -195,7 +199,7 @@ int main()
 */
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 
    return 0;
 }
