@@ -762,7 +762,7 @@ compute_row_addresses( OSMesaContext osmesa )
    else
       rowlength = osmesa->rb->Width;
 
-   if (osmesa->rb->DataType == GL_UNSIGNED_BYTE)
+   if (osmesa->rb->DataType == GL_UNSIGNED_BYTE || osmesa->rb->DataType == GL_UNSIGNED_SHORT_5_6_5)
       bpc = 1;
    else if (osmesa->rb->DataType == GL_UNSIGNED_SHORT)
       bpc = 2;
@@ -832,7 +832,7 @@ osmesa_renderbuffer_storage(GLcontext *ctx, struct gl_renderbuffer *rb,
    const OSMesaContext osmesa = OSMESA_CONTEXT(ctx);
    GLint bpc; /* bits per channel */
 
-   if (rb->DataType == GL_UNSIGNED_BYTE)
+   if (rb->DataType == GL_UNSIGNED_BYTE || rb->DataType == GL_UNSIGNED_SHORT_5_6_5)
       bpc = 8;
    else if (rb->DataType == GL_UNSIGNED_SHORT)
       bpc = 16;
@@ -998,7 +998,7 @@ osmesa_renderbuffer_storage(GLcontext *ctx, struct gl_renderbuffer *rb,
       rb->RedBits = rb->GreenBits = rb->BlueBits = bpc;
    }
    else if (osmesa->format == OSMESA_RGB_565) {
-      ASSERT(rb->DataType == GL_UNSIGNED_BYTE);
+      ASSERT(rb->DataType == GL_UNSIGNED_SHORT_5_6_5);
       rb->GetRow = get_row_RGB_565;
       rb->GetValues = get_values_RGB_565;
       rb->PutRow = put_row_RGB_565;
@@ -1167,6 +1167,7 @@ OSMesaCreateContextExt( GLenum format, GLint depthBits, GLint stencilBits,
    }
 #if CHAN_TYPE == GL_UNSIGNED_BYTE
    else if (format==OSMESA_RGB_565) {
+      type = GL_UNSIGNED_SHORT_5_6_5;
       indexBits = 0;
       redBits = 5;
       greenBits = 6;
@@ -1357,7 +1358,7 @@ OSMesaMakeCurrent( OSMesaContext osmesa, void *buffer, GLenum type,
    }
 
 #if 0
-   if (!(type == GL_UNSIGNED_BYTE ||
+   if (!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT_5_6_5 ||
          (type == GL_UNSIGNED_SHORT && CHAN_BITS >= 16) ||
          (type == GL_FLOAT && CHAN_BITS == 32))) {
       /* i.e. is sizeof(type) * 8 > CHAN_BITS? */
