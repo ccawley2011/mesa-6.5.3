@@ -19,6 +19,7 @@ PROGS = \
 	movelight \
 	rosdemo16 \
 	rosdemo32 \
+	teapot16 \
 	teapot32
 
 
@@ -73,6 +74,10 @@ rosdemo16: rosdemo16.c
 # special case: need the -lOSMesa library:
 rosdemo32: rosdemo32.c
 	$(CC) -I$(INCDIR) $(CFLAGS) rosdemo32.c $(OSMESA_LIBS) -o $@
+
+# special case: need the -lOSMesa library:
+teapot16: teapot16.c
+	$(CC) -I$(INCDIR) $(CFLAGS) teapot16.c $(OSMESA_LIBS) -o $@
 
 # special case: need the -lOSMesa library:
 teapot32: teapot32.c
