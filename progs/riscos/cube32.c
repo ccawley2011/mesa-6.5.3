@@ -43,9 +43,9 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <stdlib.h>
-#include <GL/rosmesa.h>
-#include "glaux.h"
-#include <sys/swis.h>
+#include "GL/osmesa.h"
+#include "GL/glut.h"
+#include <swis.h>
 #include <kernel.h>
 
 #define WIDTH 320
@@ -61,7 +61,7 @@ void display (void)
     glLoadIdentity ();	/*  clear the matrix	*/
     glTranslatef (0.0, 0.0, -5.0);	/*  viewing transformation	*/
     glScalef (1.0, 2.0, 1.0);	/*  modeling transformation	*/
-    auxWireCube(1.0);	/*  draw the cube	*/
+    glutWireCube(1.0);	/*  draw the cube	*/
     glFlush();
 }
 
@@ -87,14 +87,14 @@ void myReshape(int w, int h)
  */
 int main(int argc, char** argv)
 {
-   ROSMesaContext ctx;
+   OSMesaContext ctx;
    void *buffer;
    int temp[3];
    _kernel_swi_regs regs;
    int	mode_block[6] = {1, 320, 256, 5, -1, -1};
 
    /* Create an RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, 32, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) return 0;
 
    /* Allocate the image buffer */
@@ -114,7 +114,10 @@ int main(int argc, char** argv)
    _kernel_swi(OS_ScreenMode, &regs, &regs);
 
    /* Bind the buffer to the context and make it current */
-   ROSMesaMakeCurrent( ctx, buffer, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+   OSMesaMakeCurrent( ctx, buffer, GL_UNSIGNED_BYTE, WIDTH, HEIGHT );
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
 /*
     auxInitDisplayMode (AUX_SINGLE | AUX_RGB);
@@ -131,7 +134,7 @@ int main(int argc, char** argv)
 	display();
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 
     return 0;
 }
