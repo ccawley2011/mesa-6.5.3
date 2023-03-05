@@ -3,7 +3,7 @@
  *
  * Converted to GLUT by brianp on 1/1/98
  *
- * Converted to ROSMesa by David Boddie on 16th June 1998
+ * Converted to RISC OS by David Boddie on 16th June 1998
  *
  * This program was inspired on a WindowsNT(R)'s screen saver. It was written
  * from scratch and it was not based on any other source code.
@@ -132,14 +132,14 @@ So the angle is:
 
 #define WIDTH 480
 #define HEIGHT 352
-#define BPP 16
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
+#include "GL/osmesa.h"
 #include <math.h>
 #include <string.h>
-#include <sys/swis.h>
+#include <swis.h>
 #include <kernel.h>
 
 #define Scale                      0.3
@@ -812,36 +812,43 @@ static void pinit(void)
 
 void clear_screen(void *buffer)
 {
-	int	i, bpp=BPP;
+	int	i;
 	GLuint *ptr4;
 
 	ptr4 = (GLuint *) buffer;
 
-	for (i=0;i < (WIDTH*HEIGHT*BPP/32); i++)
+	for (i=0;i < (WIDTH*HEIGHT*2); i++)
 	{
 		ptr4[i] = 0;
 	}
 }
 
-void bank(int b)
+void write_bank(int b)
 {
    _kernel_swi_regs regs;
 
 	regs.r[0] = 112;
 	regs.r[1] = 1+b;
 	_kernel_swi(OS_Byte, &regs, &regs);
+}
+
+void display_bank(int b)
+{
+   _kernel_swi_regs regs;
+
 	regs.r[0] = 113;
-	regs.r[1] = 2-b;
+	regs.r[1] = 1+b;
 	_kernel_swi(OS_Byte, &regs, &regs);
 }
 
 void INIT(void)
 {
-   ROSMesaContext ctx;
+   OSMesaContext ctx;
    void* buffer[2];
+   void* image;
    int temp[3];
    _kernel_swi_regs regs;
-   int	mode_block[6] = {1, WIDTH, HEIGHT, 4, -1, -1};
+   int	mode_block[8] = {1, WIDTH, HEIGHT, 4, -1, 0, (1 << 7) | (1 << 12), -1};
    int	k;
    int	b;
 
@@ -868,38 +875,33 @@ void INIT(void)
    _kernel_swi(OS_RemoveCursors, &regs, &regs);
 
    /* Create a double buffered RGB16-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGB, 16, GL_TRUE );
+   ctx = OSMesaCreateContext( OSMESA_RGB_565, NULL );
    if (ctx==NULL) exit(0);
 
    /* Allocate the image buffers */
-   bank(0);
+   image = malloc(WIDTH*HEIGHT*2);
+   assert(image);
+
+   write_bank(0);
+   display_bank(1);
 
    regs.r[0] = (unsigned int)&temp;
-   regs.r[1] = (unsigned int)&temp[2];
+   regs.r[1] = (unsigned int)&temp;
 
    temp[0] = 148;
-   temp[1] = -1;
+   temp[1] = 149;
+   temp[2] = -1;
 
    _kernel_swi(OS_ReadVduVariables, &regs, &regs);
-   buffer[0] = (int *) temp[2];
-
-   bank(1);
-
-   regs.r[0] = (unsigned int)&temp;
-   regs.r[1] = (unsigned int)&temp[2];
-
-   temp[0] = 148;
-   temp[1] = -1;
-
-   _kernel_swi(OS_ReadVduVariables, &regs, &regs);
-   buffer[1] = (int *) temp[2];
+   buffer[0] = (int *) temp[0];
+   buffer[1] = (int *) temp[1];
 
 /* Wipe the screen banks */
 	clear_screen(buffer[0]);
 	clear_screen(buffer[1]);
 
   /* Bind the buffer to the context and make it current */
-  if (ROSMesaMakeCurrent( ctx, buffer[0], buffer[1], GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
+  if (OSMesaMakeCurrent( ctx, image, GL_UNSIGNED_SHORT_5_6_5, WIDTH, HEIGHT )==GL_FALSE)
   {
 	regs.r[0] = 0;
 	regs.r[1] = (unsigned int)&mode_block;
@@ -908,6 +910,9 @@ void INIT(void)
   	fprintf(stderr, "Couldn't MakeCurrent.\n");
   	exit(0);
   }
+
+  /* Y coordinates increase downward on RISC OS */
+  OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
   glClearDepth(1.0);
   glClearColor( 0.0, 0.0, 0.0, 1.0 );
@@ -950,18 +955,22 @@ void INIT(void)
 
   do
   {
-  	b = 1-b;
-  	bank(b);
-	clear_screen(buffer[b]);
-  	ROSMesaSwapBuffers(ctx);
-
 /*  	idle_(); */
   	draw();
 
+  	memcpy(buffer[b], image, WIDTH*HEIGHT*2);
+
+        display_bank(b);
+  	b ^= 1;
+  	write_bank(b);
+
+  	/* OSMesaSwapBuffers(ctx); */
   } while (k != 27);
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
+
+   free(image);
 
 }
 

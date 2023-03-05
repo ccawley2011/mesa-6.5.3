@@ -16,6 +16,7 @@ PROGS = \
 	cube32 \
 	desk_vgear \
 	morph32 \
+	morph3d \
 	movelight \
 	rosdemo16 \
 	rosdemo32 \
@@ -62,6 +63,10 @@ desk_vgear: desk_vgear.c
 # special case: need the -lOSMesa library:
 morph32: morph32.c
 	$(CC) -I$(INCDIR) $(CFLAGS) morph32.c $(OSMESA_LIBS) -o $@
+
+# special case: need the -lOSMesa library:
+morph3d: morph3d.c
+	$(CC) -I$(INCDIR) $(CFLAGS) morph3d.c $(OSMESA_LIBS) -o $@
 
 # special case: need the -lOSMesa library:
 movelight: movelight.c
