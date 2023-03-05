@@ -55,12 +55,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "GL/rosmesa.h"
+#include "GL/osmesa.h"
 #include "GL/glu.h"
-#include "glaux.h"
+#include "GL/glut.h"
 #include <math.h>
 #include <string.h>
-#include <sys/swis.h>
+#include <swis.h>
 #include <kernel.h>
 
 #define WX 256
@@ -75,10 +75,10 @@
 static	_kernel_swi_regs	regs;
 static	_kernel_oserror		error;
 
-ROSMesaContext ctx;
+OSMesaContext ctx;
 
 /* Image buffer */
-void	*buffer;
+unsigned char	*buffer;
 
 /* Task details */
 char		task_name[16] = "Cone";
@@ -125,23 +125,8 @@ void	redisplay( void )
 	_kernel_swi(Wimp_ForceRedraw, &regs, &regs);
 }
 
-void	glutWireCube(GLfloat size)
-{
-	auxWireCube(size);
-}
-
-void	glutSolidTorus(GLfloat a1, GLfloat a2, GLfloat a3, GLfloat a4)
-{
-	auxSolidTorus(a1, a2);
-}
-
-void	glutPostRedisplay( void )
-{
-	redisplay();
-}
-
-#define GLUT_LEFT_BUTTON 4
-#define GLUT_DOWN 1
+#define MOUSE_LEFT_BUTTON 4
+#define MOUSE_DOWN 1
 
 /* -------------------------------------------------------------------------------- */
 
@@ -236,7 +221,7 @@ void display(void)
    glMaterialfv ( GL_FRONT, GL_DIFFUSE, colour );
 /*   glMaterialfv ( GL_FRONT, GL_SPECULAR, highlight );*/
    glMaterialfv ( GL_FRONT, GL_SHININESS, shininess );
-   auxSolidCone (1.0, 2.0);
+   glutSolidCone (1.0, 2.0, 15, 10);
    glPopMatrix ();
    glFlush ();
 }
@@ -263,10 +248,10 @@ void rotate( void )
 void mouse(int button, int state, int x, int y)
 {
    switch (button) {
-/*      case GLUT_LEFT_BUTTON:
-         if (state == GLUT_DOWN) {
+/*      case MOUSE_LEFT_BUTTON:
+         if (state == MOUSE_DOWN) {
             spin = (spin + 30) % 360;
-            glutPostRedisplay();
+            redisplay();
          }
          break;
 */
@@ -308,7 +293,7 @@ void setup( void )
 	menu_block[14] = 0;
 
    /* Create a single buffered RGBA-mode context */
-   ctx = ROSMesaCreateContext( ROSMESA_RGBA, BPP, GL_FALSE );
+   ctx = OSMesaCreateContext( OSMESA_RGBA, NULL );
    if (ctx==NULL) exit(0);
 
    /* Allocate the image buffer */
@@ -337,10 +322,13 @@ void setup( void )
   clear_screen(buffer+HEADER);
 
   /* Bind the buffer to the context and make it current */
-  if (ROSMesaMakeCurrent( ctx, buffer+HEADER, NULL, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
+  if (OSMesaMakeCurrent( ctx, buffer+HEADER, GL_UNSIGNED_BYTE, WIDTH, HEIGHT )==GL_FALSE)
   {
   	exit(0);
   }
+
+   /* Y coordinates increase downward on RISC OS */
+   OSMesaPixelStore( OSMESA_Y_UP, 0 );
 
 /* Initialise task */
 	regs.r[0] = (unsigned int)310;
@@ -433,7 +421,7 @@ void poll( void (*idle_function)(void), void (*display_function)(void), void (*k
 								_kernel_swi(Wimp_GetPointerInfo, &regs, &regs);
 
 								/* Pass position from window lower-left corner */
-								mouse_function(message[2] & GLUT_LEFT_BUTTON, GLUT_DOWN, workspace[0] - wx, workspace[1] - wy);
+								mouse_function(message[2] & MOUSE_LEFT_BUTTON, MOUSE_DOWN, workspace[0] - wx, workspace[1] - wy);
 							}
 					}
                                         break;
@@ -464,6 +452,7 @@ void poll( void (*idle_function)(void), void (*display_function)(void), void (*k
                                         }
                                         break;
                         default:
+                                        break;
 		}
 	} while (quit == 0);
 }
@@ -486,7 +475,7 @@ void end( void )
    free(buffer);
 
    /* destroy the context */
-   ROSMesaDestroyContext( ctx );
+   OSMesaDestroyContext( ctx );
 }
 
 /* -------------------------------------------------------------------------------- */
