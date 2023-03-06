@@ -60,13 +60,16 @@ typedef struct {
 
 static struct {
     menu_header block;
-    menu_item items[1];
+    menu_item items[2];
 } menu_block = {
    { "Gears", 7, 2, 7, 0, (17+1)*16, 44, 0 },
    {
+      { 3,     (void *)-1, 0x07000101, "Lighting", NULL, 8 },
       { 128,   (void *)-1, 0x07000101, "Quit", NULL, 4 }
    }
 };
+
+#define lighting_enabled (menu_block.items[0].item_flags & 1)
 
 
 /*
@@ -80,7 +83,7 @@ static struct {
  *         tooth_depth - depth of tooth
  */
 static void gear( GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
-		  GLint teeth, GLfloat tooth_depth )
+		  GLint teeth, GLfloat tooth_depth, const GLfloat col[4] )
 {
    GLint i;
    GLfloat r0, r1, r2;
@@ -92,6 +95,11 @@ static void gear( GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
    r2 = outer_radius + tooth_depth/2.0;
 
    da = 2.0*M_PI / teeth / 4.0;
+
+   if ( lighting_enabled )
+      glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, col );
+   else
+      glColor4f( col[0], col[1], col[2], col[3] );
 
    glShadeModel( GL_FLAT );
 
@@ -148,6 +156,8 @@ static void gear( GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
    }
    glEnd();
 
+   if ( !lighting_enabled )
+      glColor4f( col[0] * 0.5f, col[1] * 0.5f, col[2] * 0.5f, col[3] * 0.5f );
 
    /* draw outward faces of teeth */
    glBegin( GL_QUAD_STRIP );
@@ -197,7 +207,7 @@ static void gear( GLfloat inner_radius, GLfloat outer_radius, GLfloat width,
 
 
 static GLfloat view_rotx=20.0, view_roty=30.0, view_rotz=0.0;
-static GLint gear1, gear2, gear3;
+static GLint gears, gear1, gear2, gear3;
 static GLfloat angle = 0.0;
 
 static GLuint limit;
@@ -247,29 +257,33 @@ static void init( void )
    GLfloat w = (float) WIDTH / (float) HEIGHT;
    GLfloat h = 1.0;
 
-   glLightfv( GL_LIGHT0, GL_POSITION, pos );
    glEnable( GL_CULL_FACE );
-   glEnable( GL_LIGHTING );
-   glEnable( GL_LIGHT0 );
    glEnable( GL_DEPTH_TEST );
 
+   if ( lighting_enabled ) {
+      glEnable( GL_LIGHTING );
+      glEnable( GL_LIGHT0 );
+      glLightfv( GL_LIGHT0, GL_POSITION, pos );
+   } else {
+      glDisable( GL_LIGHTING );
+   }
+
    /* make the gears */
-   gear1 = glGenLists(1);
+   gears = glGenLists(3);
+
+   gear1 = gears + 0;
    glNewList(gear1, GL_COMPILE);
-   glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red );
-   gear( 1.0, 4.0, 1.0, 20, 0.7 );
+   gear( 1.0, 4.0, 1.0, 20, 0.7, red );
    glEndList();
 
-   gear2 = glGenLists(1);
+   gear2 = gears + 1;
    glNewList(gear2, GL_COMPILE);
-   glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, green );
-   gear( 0.5, 2.0, 2.0, 10, 0.7 );
+   gear( 0.5, 2.0, 2.0, 10, 0.7, green );
    glEndList();
 
-   gear3 = glGenLists(1);
+   gear3 = gears + 2;
    glNewList(gear3, GL_COMPILE);
-   glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, blue );
-   gear( 1.3, 2.0, 0.5, 10, 0.7 );
+   gear( 1.3, 2.0, 0.5, 10, 0.7, blue );
    glEndList();
 
    glEnable( GL_NORMALIZE );
@@ -294,6 +308,11 @@ static void init( void )
 /* Added by David Boddie (Thu 18th March 1999) */
   glDisable(GL_DITHER);
 
+}
+
+static void deinit( void )
+{
+   glDeleteLists(gears, 3);
 }
 
 void clear_screen(void *buffer)
@@ -469,6 +488,12 @@ do
 					switch (message[0])
 					{
 						case 0:
+							/* Lighting */
+							menu_block.items[0].item_flags ^= 1;
+							deinit();
+							init();
+							break;
+						case 1:
 							/* Quit */
 							quit = 1;
 							break;
@@ -499,6 +524,7 @@ do
 		};
 } while (quit == 0);
 
+   deinit();
    end();
    return 0;
 }
