@@ -35,7 +35,39 @@ OSMesaContext ctx;
 	unsigned int	task_handle;
    int	icon_block[9] = {0, 0, -HEIGHT*UNITS, WIDTH*UNITS, 0, 0x2102, 0, 0, 0};
    int	message[64];
+   int	workspace[64];
    char	sprite_name[12] = "display";
+
+typedef struct {
+   char title[12];
+   GLubyte title_fg;
+   GLubyte title_bg;
+   GLubyte work_fg;
+   GLubyte work_bg;
+   GLuint width;
+   GLuint height;
+   GLuint vgap;
+} menu_header;
+
+typedef struct {
+   GLuint item_flags;
+   void *handle;
+   GLuint icon_flags;
+   char *text;
+   char *valid;
+   int length;
+} menu_item;
+
+static struct {
+    menu_header block;
+    menu_item items[1];
+} menu_block = {
+   { "Gears", 7, 2, 7, 0, (17+1)*16, 44, 0 },
+   {
+      { 128,   (void *)-1, 0x07000101, "Quit", NULL, 4 }
+   }
+};
+
 
 /*
  * Draw a gear wheel.  You'll probably want to call this function when
@@ -415,6 +447,46 @@ do
                 			_kernel_swi(Wimp_CloseWindow, &regs, &regs);
                 			quit = 1;
                 			break;
+			case 6:		/* Button */
+					switch (message[2])
+					{
+						case 2:
+							/* Open menu */
+
+							/* Get pointer position */
+							regs.r[1] = (unsigned int)&workspace;
+							_kernel_swi(Wimp_GetPointerInfo, &regs, &regs);
+							regs.r[1] = (unsigned int)&menu_block;
+							regs.r[2] = workspace[0] - 64;
+							regs.r[3] = workspace[1];
+							_kernel_swi(Wimp_CreateMenu, &regs, &regs);
+							break;
+						default:
+							break;
+					}
+                                        break;
+			case 9:		/* Menu selection */
+					switch (message[0])
+					{
+						case 0:
+							/* Quit */
+							quit = 1;
+							break;
+						default:
+							break;
+					}
+
+					/* Get pointer position */
+					regs.r[1] = (unsigned int)&message;
+					_kernel_swi(Wimp_GetPointerInfo, &regs, &regs);
+					if (message[2] == 1)
+					{
+						regs.r[1] = (unsigned int)&menu_block;
+						regs.r[2] = message[0] - 64;
+						regs.r[3] = message[1];
+						_kernel_swi(Wimp_CreateMenu, &regs, &regs);
+					}
+					break;
                 	case 17:
                 	case 18:
                 			if (message[4] == 0)
